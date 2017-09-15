@@ -1,4 +1,5 @@
 import { Action, Reducer, Store } from './redux';
+import { getValueAsync } from './side-effect';
 
 interface AppState {
     message: string;
@@ -41,8 +42,28 @@ let rootReducer: Reducer<AppState> = (state: AppState, action: Action) =>{
 let store = new Store<AppState>(rootReducer, { counter:0, message: '' });
 console.log(store.getState()); // => { counter: 0, message: '' }
 
-store.dispatch({ type: 'INCREMENT' });
-console.log(store.getState()); // => { counter: 1, message: '' }
+let unsubscribe = store.subscribe(() => {
+    console.log(`subscribed: ${JSON.stringify(store.getState())}`);
+});
 
-store.dispatch({ type: 'MESSAGE', payload: 'Hello World' });
-console.log(store.getState()); // => { counter: 1, message: 'Hello World' }
+let sideEffect = function(value: number) {
+    store.dispatch({ type: 'MESSAGE', payload: 'Start loading the value' });
+
+    getValueAsync(value, (val: number, err: string) => {
+        if (err === undefined) {
+            store.dispatch({ type: 'MESSAGE', payload: 'Loading the value succeeded' });
+            store.dispatch({ type: 'PLUS', payload: val });
+        } else {
+            store.dispatch({ type: 'MESSAGE', payload: 'Loading the value failed' });
+        };
+    });
+};
+
+sideEffect(5);
+// => subscribed: { counter: 0, message: 'Start loading the value' }
+// => subscribed: { counter: 0, message: 'Loading the value succeeded' }
+// => subscribed: { counter: 5, message: 'Loading the value succeeded' }
+
+sideEffect(undefined);
+// => subscribed: { counter: 5, message: 'Start loading the value' }
+// => subscribed: { counter: 5, message: 'Loading the value failed' }
