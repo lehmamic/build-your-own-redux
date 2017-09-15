@@ -29,3 +29,6 @@ store.dispatch({ type: 'INCREMENT' }); // => subscribed: 2
 
 unsubscribe();
 store.dispatch({ type: 'DECREMENT' }); // => nothing logged
+
+// decrement happened, even though we weren't listening for it
+console.log(store.getState()); // => 1
