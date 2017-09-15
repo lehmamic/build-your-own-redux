@@ -1,6 +1,11 @@
 import { Action, Reducer, Store } from './redux';
 
-let reducer: Reducer<number> = (state: number, action: Action) => {
+interface AppState {
+    message: string;
+    counter: number
+}
+
+let counterReducer: Reducer<number> = (state: number, action: Action) => {
     switch(action.type) {
         case 'INCREMENT':
             return state + 1;
@@ -16,19 +21,28 @@ let reducer: Reducer<number> = (state: number, action: Action) => {
     }
 };
 
-let store = new Store<number>(reducer, 0);
-console.log(store.getState()); // => 0
+let messageReducer: Reducer<string> = (state: string, action: Action) => {
+    switch(action.type) {
+        case 'MESSAGE':
+            return action.payload;
 
-let unsubscribe = store.subscribe(() => {
-    console.log(`subscribed: ${store.getState()}`);
-});
+        default:
+            return state; // <-- don't forget!
+    }
+};
 
-store.dispatch({ type: 'INCREMENT' }); // => subscribed: 1
+let rootReducer: Reducer<AppState> = (state: AppState, action: Action) =>{
+    return {
+        counter: counterReducer(state.counter, action),
+        message: messageReducer(state.message, action)
+    }
+};
 
-store.dispatch({ type: 'INCREMENT' }); // => subscribed: 2
+let store = new Store<AppState>(rootReducer, { counter:0, message: '' });
+console.log(store.getState()); // => { counter: 0, message: '' }
 
-unsubscribe();
-store.dispatch({ type: 'DECREMENT' }); // => nothing logged
+store.dispatch({ type: 'INCREMENT' });
+console.log(store.getState()); // => { counter: 1, message: '' }
 
-// decrement happened, even though we weren't listening for it
-console.log(store.getState()); // => 1
+store.dispatch({ type: 'MESSAGE', payload: 'Hello World' });
+console.log(store.getState()); // => { counter: 1, message: 'Hello World' }
