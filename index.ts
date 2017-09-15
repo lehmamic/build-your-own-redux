@@ -8,6 +8,9 @@ let reducer: Reducer<number> = (state: number, action: Action) => {
         case 'DECREMENT':
             return state - 1;
 
+        case 'PLUS':
+            return state + action.payload;
+
         default:
             return state; // <-- don't forget!
     }
@@ -31,3 +34,7 @@ let unknownAction: Action = {
 };
 
 console.log(reducer(100, unknownAction)); // => 100
+
+console.log(reducer(3, { type: 'PLUS', payload: 7 })); // => 10
+console.log(reducer(3, { type: 'PLUS', payload: 9000 })); // => 9003
+console.log(reducer(3, { type: 'PLUS', payload: -2 })); // => 1
